@@ -79,8 +79,8 @@ export default function LoginPage() {
           <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
             <UserCheck className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">MediCare Plus</h1>
-          <p className="text-gray-600">Professional Hospital Management</p>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">JARU</h1>
+          <p className="text-gray-600">Jaru Hospital Management</p>
         </div>
 
         <div className="card">
