@@ -54,7 +54,7 @@ export default function Navbar() {
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">M+</span>
               </div>
-              <span className="ml-2 text-xl font-bold text-gray-800">MediCare Plus</span>
+              <span className="ml-2 text-xl font-bold text-gray-800">Jaru Hospital System</span>
             </div>
           </div>
 
