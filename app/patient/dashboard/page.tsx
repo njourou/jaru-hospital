@@ -20,6 +20,7 @@ import {
   X,
   AlertCircle,
 } from "lucide-react"
+import jsPDF from "jspdf"
 
 interface Appointment {
   id: string
@@ -235,6 +236,43 @@ export default function PatientDashboard() {
     }
   }
 
+  const handleDownloadReceipt = (bill) => {
+    const doc = new jsPDF()
+    doc.setFontSize(18)
+    doc.text("Jaru Hospital Management System", 10, 15)
+    doc.setFontSize(16)
+    doc.text("Patient Bill Receipt", 10, 30)
+    doc.setFontSize(12)
+    doc.text(`Bill #: ${bill.id.slice(0, 8)}`, 10, 45)
+    doc.text(`Date: ${new Date(bill.created_at).toLocaleDateString()}`, 10, 55)
+    doc.text(`Consultation Fee: Ksh ${Number(bill.consultation_fee).toFixed(2)}`, 10, 70)
+    doc.text(`Medicine Cost: Ksh ${Number(bill.medicine_cost).toFixed(2)}`, 10, 80)
+    doc.text(`Room Charges: Ksh ${Number(bill.room_charges).toFixed(2)}`, 10, 90)
+    doc.text(`Other Charges: Ksh ${Number(bill.other_charges).toFixed(2)}`, 10, 100)
+    doc.setFontSize(14)
+    doc.text(`Total Amount: Ksh ${Number(bill.total_amount).toFixed(2)}`, 10, 115)
+    doc.text(`Status: ${bill.payment_status === "paid" ? "Paid" : "Pending"}`, 10, 125)
+    doc.save(`receipt_${bill.id.slice(0, 8)}.pdf`)
+  }
+
+  const handleDownloadPrescription = (prescription) => {
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text("Jaru Hospital Management System", 10, 15);
+    doc.setFontSize(16);
+    doc.text("Prescription", 10, 30);
+    doc.setFontSize(12);
+    doc.text(`Medicine: ${prescription.medicine?.name || "Unknown Medicine"}`, 10, 45);
+    doc.text(`Dosage: ${prescription.dosage}`, 10, 55);
+    doc.text(`Frequency: ${prescription.frequency}`, 10, 65);
+    doc.text(`Duration: ${prescription.duration}`, 10, 75);
+    doc.text(`Prescribed by: ${prescription.appointment?.doctor?.user?.full_name || "Unknown Doctor"}`, 10, 85);
+    if (prescription.instructions) {
+      doc.text(`Instructions: ${prescription.instructions}`, 10, 95);
+    }
+    doc.save(`prescription_${prescription.id.slice(0, 8)}.pdf`);
+  };
+
   const timeSlots = ["9:00", "10:00", "11:00", "14:00", "15:00", "16:00"]
 
   const renderDashboard = () => {
@@ -293,7 +331,7 @@ export default function PatientDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-100">Outstanding Bill</p>
-                <p className="text-2xl font-bold">${totalPending.toFixed(2)}</p>
+                <p className="text-2xl font-bold">Ksh {totalPending.toFixed(2)}</p>
                 <p className="text-purple-100">{pendingBills.length} pending</p>
               </div>
               <CreditCard className="w-8 h-8 text-purple-200" />
@@ -568,7 +606,7 @@ export default function PatientDashboard() {
                   )}
                 </div>
                 <div className="mt-4 md:mt-0">
-                  <button className="btn-secondary">
+                  <button className="btn-secondary" onClick={() => handleDownloadPrescription(prescription)}>
                     <Download className="w-4 h-4 mr-2" />
                     Download
                   </button>
@@ -599,23 +637,23 @@ export default function PatientDashboard() {
             <div className="space-y-3">
               <div className="flex justify-between items-center py-2 border-b border-gray-100">
                 <span className="text-gray-700">Consultation Fee</span>
-                <span className="font-semibold text-gray-800">${Number(bill.consultation_fee).toFixed(2)}</span>
+                <span className="font-semibold text-gray-800">Ksh {Number(bill.consultation_fee).toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-gray-100">
                 <span className="text-gray-700">Medicine Cost</span>
-                <span className="font-semibold text-gray-800">${Number(bill.medicine_cost).toFixed(2)}</span>
+                <span className="font-semibold text-gray-800">Ksh {Number(bill.medicine_cost).toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-gray-100">
                 <span className="text-gray-700">Room Charges</span>
-                <span className="font-semibold text-gray-800">${Number(bill.room_charges).toFixed(2)}</span>
+                <span className="font-semibold text-gray-800">Ksh {Number(bill.room_charges).toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-gray-100">
                 <span className="text-gray-700">Other Charges</span>
-                <span className="font-semibold text-gray-800">${Number(bill.other_charges).toFixed(2)}</span>
+                <span className="font-semibold text-gray-800">Ksh {Number(bill.other_charges).toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center pt-4 border-t-2 border-gray-200">
                 <span className="text-lg font-semibold text-gray-800">Total Amount</span>
-                <span className="text-xl font-bold text-blue-600">${Number(bill.total_amount).toFixed(2)}</span>
+                <span className="text-xl font-bold text-blue-600">Ksh {Number(bill.total_amount).toFixed(2)}</span>
               </div>
             </div>
 
@@ -636,6 +674,11 @@ export default function PatientDashboard() {
                     <CreditCard className="w-5 h-5 mr-2" />
                   )}
                   Pay Now
+                </button>
+              )}
+              {bill.payment_status === "paid" && (
+                <button onClick={() => handleDownloadReceipt(bill)} className="btn-secondary">
+                  Download Receipt
                 </button>
               )}
             </div>

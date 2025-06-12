@@ -24,6 +24,7 @@ import {
   CreditCard,
   Clock,
 } from "lucide-react"
+import jsPDF from "jspdf"
 
 interface Patient {
   id: string
@@ -453,6 +454,24 @@ export default function DoctorDashboard() {
     }
   }
 
+  const handleDownloadReceipt = (bill: any) => {
+    const doc = new jsPDF()
+    doc.setFontSize(16)
+    doc.text("Patient Bill Receipt", 10, 15)
+    doc.setFontSize(12)
+    doc.text(`Patient: ${bill.patient?.user?.full_name || "Unknown Patient"}`, 10, 30)
+    doc.text(`Bill #: ${bill.id.slice(0, 8)}`, 10, 40)
+    doc.text(`Date: ${new Date(bill.created_at).toLocaleDateString()}`, 10, 50)
+    doc.text(`Consultation: Ksh ${Number(bill.consultation_fee).toFixed(2)}`, 10, 65)
+    doc.text(`Medicine: Ksh ${Number(bill.medicine_cost).toFixed(2)}`, 10, 75)
+    doc.text(`Room: Ksh ${Number(bill.room_charges).toFixed(2)}`, 10, 85)
+    doc.text(`Other Charges: Ksh ${Number(bill.other_charges).toFixed(2)}`, 10, 95)
+    doc.setFontSize(14)
+    doc.text(`Total: Ksh ${Number(bill.total_amount).toFixed(2)}`, 10, 110)
+    doc.text(`Status: ${bill.payment_status === "paid" ? "Paid" : "Pending"}`, 10, 120)
+    doc.save(`receipt_${bill.id.slice(0, 8)}.pdf`)
+  }
+
   const renderDashboard = () => {
     const todayAppointments = appointments.filter(
       (apt) => apt.appointment_date === new Date().toISOString().split("T")[0],
@@ -878,7 +897,7 @@ export default function DoctorDashboard() {
                       </span>
                     </div>
                     <div>
-                      <span className="font-medium">Price:</span> ${Number(medicine.price_per_unit).toFixed(2)}
+                      <span className="font-medium">Price:</span> Ksh {Number(medicine.price_per_unit).toFixed(2)}
                     </div>
                   </div>
                   {medicine.manufacturer && (
@@ -1070,7 +1089,7 @@ export default function DoctorDashboard() {
                     <span className="font-medium">Floor:</span> {room.floor}
                   </div>
                   <div>
-                    <span className="font-medium">Daily Rate:</span> ${Number(room.daily_rate).toFixed(2)}
+                    <span className="font-medium">Daily Rate:</span> Ksh {Number(room.daily_rate).toFixed(2)}
                   </div>
                 </div>
                 {room.room_assignments && room.room_assignments.length > 0 && (
@@ -1141,7 +1160,7 @@ export default function DoctorDashboard() {
                   .filter((room) => room.status === "available")
                   .map((room) => (
                     <option key={room.id} value={room.id}>
-                      Room {room.room_number} - {room.room_type} (${room.daily_rate}/day)
+                      Room {room.room_number} - {room.room_type} (Ksh {room.daily_rate}/day)
                     </option>
                   ))}
               </select>
@@ -1206,7 +1225,7 @@ export default function DoctorDashboard() {
             <div>
               <p className="text-blue-100">Total Revenue</p>
               <p className="text-2xl font-bold">
-                $
+                Ksh
                 {bills
                   .filter((bill) => bill.payment_status === "paid")
                   .reduce((sum, bill) => sum + Number(bill.total_amount), 0)
@@ -1241,10 +1260,18 @@ export default function DoctorDashboard() {
                 </span>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                <div>Consultation: ${Number(bill.consultation_fee).toFixed(2)}</div>
-                <div>Medicine: ${Number(bill.medicine_cost).toFixed(2)}</div>
-                <div>Room: ${Number(bill.room_charges).toFixed(2)}</div>
-                <div className="font-semibold">Total: ${Number(bill.total_amount).toFixed(2)}</div>
+                <div>Consultation: Ksh {Number(bill.consultation_fee).toFixed(2)}</div>
+                <div>Medicine: Ksh {Number(bill.medicine_cost).toFixed(2)}</div>
+                <div>Room: Ksh {Number(bill.room_charges).toFixed(2)}</div>
+                <div className="font-semibold">Total: Ksh {Number(bill.total_amount).toFixed(2)}</div>
+              </div>
+              <div className="flex justify-end mt-4">
+                <button
+                  className="btn-secondary"
+                  onClick={() => handleDownloadReceipt(bill)}
+                >
+                  Download Receipt
+                </button>
               </div>
             </div>
           ))}
