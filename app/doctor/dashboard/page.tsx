@@ -23,6 +23,7 @@ import {
   X,
   CreditCard,
   Clock,
+  Download,
 } from "lucide-react"
 import jsPDF from "jspdf"
 
@@ -472,6 +473,71 @@ export default function DoctorDashboard() {
     doc.save(`receipt_${bill.id.slice(0, 8)}.pdf`)
   }
 
+  const handleDownloadPatients = () => {
+    const doc = new jsPDF()
+    doc.setFontSize(18)
+    doc.text("Patient List with Appointments", 10, 15)
+    doc.setFontSize(10)
+    
+    let yPosition = 30
+    const filteredAppointments = appointments.filter((appointment: Appointment) => 
+      appointment.patient.user.full_name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    
+    filteredAppointments.forEach((appointment: Appointment, index: number) => {
+      if (yPosition > 250) {
+        doc.addPage()
+        yPosition = 20
+      }
+      
+      doc.setFontSize(12)
+      doc.text(`${index + 1}. ${appointment.patient.user.full_name}`, 10, yPosition)
+      yPosition += 8
+      
+      doc.setFontSize(10)
+      doc.text(`   Age: ${appointment.patient.user.age} years`, 15, yPosition)
+      yPosition += 6
+      doc.text(`   Phone: ${appointment.patient.user.phone}`, 15, yPosition)
+      yPosition += 6
+      doc.text(`   Blood Group: ${appointment.patient.blood_group}`, 15, yPosition)
+      yPosition += 6
+      doc.text(`   Appointment Date: ${new Date(appointment.appointment_date).toLocaleDateString()}`, 15, yPosition)
+      yPosition += 6
+      doc.text(`   Appointment Time: ${appointment.appointment_time}`, 15, yPosition)
+      yPosition += 6
+      doc.text(`   Status: ${appointment.status.replace("_", " ")}`, 15, yPosition)
+      yPosition += 6
+      doc.text(`   Symptoms: ${appointment.symptoms}`, 15, yPosition)
+      yPosition += 10
+    })
+    
+    doc.save(`patients_list_${new Date().toISOString().split('T')[0]}.pdf`)
+  }
+
+  const handleDownloadPatient = (appointment: Appointment) => {
+    const doc = new jsPDF()
+    doc.setFontSize(16)
+    doc.text("Patient Information", 10, 15)
+    doc.setFontSize(12)
+    
+    doc.text(`Name: ${appointment.patient.user.full_name}`, 10, 30)
+    doc.text(`Age: ${appointment.patient.user.age} years`, 10, 40)
+    doc.text(`Phone: ${appointment.patient.user.phone}`, 10, 50)
+    doc.text(`Email: ${appointment.patient.user.email}`, 10, 60)
+    doc.text(`Blood Group: ${appointment.patient.blood_group}`, 10, 70)
+    doc.text(`Emergency Contact: ${appointment.patient.emergency_contact}`, 10, 80)
+    doc.text(`Appointment Date: ${new Date(appointment.appointment_date).toLocaleDateString()}`, 10, 95)
+    doc.text(`Appointment Time: ${appointment.appointment_time}`, 10, 105)
+    doc.text(`Status: ${appointment.status.replace("_", " ")}`, 10, 115)
+    doc.text(`Symptoms: ${appointment.symptoms}`, 10, 125)
+    
+    if (appointment.notes) {
+      doc.text(`Notes: ${appointment.notes}`, 10, 140)
+    }
+    
+    doc.save(`patient_${appointment.patient.user.full_name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`)
+  }
+
   const renderDashboard = () => {
     const todayAppointments = appointments.filter(
       (apt) => apt.appointment_date === new Date().toISOString().split("T")[0],
@@ -614,15 +680,24 @@ export default function DoctorDashboard() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-800">Patient Management</h2>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input
-            type="text"
-            placeholder="Search patients..."
-            className="input-field pl-10 w-64"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+        <div className="flex items-center space-x-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Search patients..."
+              className="input-field pl-10 w-64"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <button
+            onClick={handleDownloadPatients}
+            className="btn-secondary flex items-center"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Download All
+          </button>
         </div>
       </div>
 
@@ -670,6 +745,13 @@ export default function DoctorDashboard() {
                   >
                     <Eye className="w-4 h-4 mr-2" />
                     Consult
+                  </button>
+                  <button
+                    onClick={() => handleDownloadPatient(appointment)}
+                    className="btn-secondary"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Download
                   </button>
                 </div>
               </div>
